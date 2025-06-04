@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import HeroSection from '../components/HeroSection';
 import ApartmentCard from '../components/ApartmentCard';
+import DateSearch from "../components/AvailabilityForm";
 
 const Home = () => {
   const [apartments, setApartments] = useState([]);
@@ -28,7 +29,9 @@ const Home = () => {
   return (
     <div>
       <HeroSection />
-
+<section className="py-10 px-6 max-w-7xl mx-auto">
+  <DateSearch />
+</section>
       <section className="py-10 px-6 max-w-7xl mx-auto">
         <div className="flex justify-center gap-4 mb-6">
           <button
