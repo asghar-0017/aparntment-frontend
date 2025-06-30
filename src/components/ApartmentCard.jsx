@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 const ApartmentCard = ({ apartment }) => {
   if (!apartment) return null;
 
@@ -81,12 +82,12 @@ const ApartmentCard = ({ apartment }) => {
         }),
       });
       const result = await response.json();
-      if (response.ok) {
-        alert('Booking successful!');
-        handleCloseModal();
-      } else {
-        setError(result.error || 'Booking failed. Please try again.');
-      }
+     if (response.ok) {
+  toast.success('Booking successful!');
+  handleCloseModal();
+} else {
+  toast.error(result.error || 'Booking failed. Please try again.');
+}
     } catch (err) {
       setError('An error occurred while booking. Please try again.');
       console.error(err);
