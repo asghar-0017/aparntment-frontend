@@ -3,25 +3,37 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+
 const ApartmentCard = ({ apartment }) => {
   if (!apartment) return null;
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [dateRange, setDateRange] = useState([null, null]);
-  const [formData, setFormData] = useState({ name: '', email: '', phone: '' });
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    priceOption: '',
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [shortUrl, setShortUrl] = useState('');
 
   const title = apartment.title?.trim() || 'Apartment';
-  const image = apartment.image || 'https://via.placeholder.com/400x250?text=No+Image';
-  const pricePerDay = apartment.pricePerDay ?? 0;
-  const amenities = Array.isArray(apartment.amenities) ? apartment.amenities : [];
+  const image =
+    apartment.image || 'https://via.placeholder.com/400x250?text=No+Image';
 
-  const bookedDates = apartment.bookedDates?.map((date) => {
-    const parsed = new Date(date);
-    return isNaN(parsed) ? null : parsed;
-  }).filter(Boolean) || [];
+  const amenities = Array.isArray(apartment.amenities)
+    ? apartment.amenities
+    : [];
+
+  const bookedDates =
+    apartment.bookedDates
+      ?.map((date) => {
+        const parsed = new Date(date);
+        return isNaN(parsed) ? null : parsed;
+      })
+      .filter(Boolean) || [];
 
   useEffect(() => {
     const fetchShortUrl = async () => {
@@ -43,10 +55,16 @@ const ApartmentCard = ({ apartment }) => {
   }, [apartment._id]);
 
   const handleBookingClick = () => setIsModalOpen(true);
+
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setDateRange([null, null]);
-    setFormData({ name: '', email: '', phone: '' });
+    setFormData({
+      name: '',
+      email: '',
+      phone: '',
+      priceOption: '',
+    });
     setError(null);
   };
 
@@ -55,13 +73,40 @@ const ApartmentCard = ({ apartment }) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleDateChange = (dates) => setDateRange(dates);
+  // ✅ UPDATED: Block selecting ranges that cross booked dates
+  const handleDateChange = (dates) => {
+    const [start, end] = dates;
+
+    if (!end) {
+      setDateRange([start, null]);
+      return;
+    }
+
+    const overlaps = bookedDates.some(
+      (bookedDate) => bookedDate >= start && bookedDate <= end
+    );
+
+    if (overlaps) {
+      setError('Selected range includes unavailable dates. Please choose a different range.');
+      setDateRange([null, null]);
+    } else {
+      setError(null);
+      setDateRange([start, end]);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const [startDate, endDate] = dateRange;
-    if (!startDate || !endDate || !formData.name || !formData.email || !formData.phone) {
-      setError('Please fill all fields and select a date range.');
+    if (
+      !startDate ||
+      !endDate ||
+      !formData.name ||
+      !formData.email ||
+      !formData.phone ||
+      !formData.priceOption
+    ) {
+      setError('Please complete all fields.');
       return;
     }
 
@@ -78,18 +123,25 @@ const ApartmentCard = ({ apartment }) => {
         body: JSON.stringify({
           apartmentId: apartment._id,
           selectedDates,
-          userDetails: formData,
+          priceOption: formData.priceOption,
+          userDetails: {
+            name: formData.name,
+            email: formData.email,
+            phone: formData.phone,
+          },
         }),
       });
+
       const result = await response.json();
-     if (response.ok) {
-  toast.success('Booking successful!');
-  handleCloseModal();
-} else {
-  toast.error(result.error || 'Booking failed. Please try again.');
-}
+
+      if (response.ok) {
+        toast.success('Booking successful!');
+        handleCloseModal();
+      } else {
+        toast.error(result.error || 'Booking failed.');
+      }
     } catch (err) {
-      setError('An error occurred while booking. Please try again.');
+      setError('Booking failed. Please try again.');
       console.error(err);
     } finally {
       setIsSubmitting(false);
@@ -101,7 +153,7 @@ const ApartmentCard = ({ apartment }) => {
   );
 
   return (
-    <div className="bg-white rounded-2xl shadow-xl border border-gray-200 hover:shadow-2xl transition-all duration-300 overflow-hidden max-w-sm mx-auto">
+    <div className="bg-white rounded-2xl shadow-lg border border-gray-200 hover:shadow-2xl transition overflow-hidden max-w-sm mx-auto">
       <img
         src={image}
         alt={title}
@@ -110,32 +162,47 @@ const ApartmentCard = ({ apartment }) => {
       />
 
       <div className="p-4">
-        <h3 className="text-2xl font-bold text-gray-800 mb-1 truncate">{title}</h3>
-        <p className="text-sm text-gray-500 mb-2">{apartment.city} • {apartment.type}</p>
+        <h3 className="text-xl font-semibold text-gray-800 mb-1 truncate">
+          {title}
+        </h3>
+        <p className="text-xs text-gray-500 mb-2">
+          {apartment.city} • {apartment.type}
+        </p>
 
-        <div className="text-lg font-semibold text-amber-600 mb-3">
-          PKR {pricePerDay.toLocaleString()}/day
+        <div className="text-base font-medium text-amber-600 mb-3">
+          {apartment.pricePerDay && (
+            <div>PKR {apartment.pricePerDay.toLocaleString()}/day</div>
+          )}
+          {apartment.pricePerWeek && (
+            <div>PKR {apartment.pricePerWeek.toLocaleString()}/week</div>
+          )}
+          {apartment.pricePerMonth && (
+            <div>PKR {apartment.pricePerMonth.toLocaleString()}/month</div>
+          )}
         </div>
 
-        <div className="mb-4">
-          <p className="text-sm font-medium text-gray-700 mb-1">Amenities:</p>
-          <div className="flex flex-wrap gap-2">
+        <div className="mb-3">
+          <p className="text-xs font-medium text-gray-600 mb-1">Amenities:</p>
+          <div className="flex flex-wrap gap-1">
             {amenities.length > 0 ? (
               amenities.map((item, index) => (
-                <span key={index} className="bg-gray-100 text-xs text-gray-700 px-2 py-1 rounded-full">
+                <span
+                  key={index}
+                  className="bg-gray-100 text-[10px] text-gray-700 px-2 py-1 rounded-full"
+                >
                   {item}
                 </span>
               ))
             ) : (
-              <span className="text-gray-400 text-sm">N/A</span>
+              <span className="text-gray-400 text-xs">N/A</span>
             )}
           </div>
         </div>
 
-        <div className="flex gap-3">
+        <div className="flex gap-2">
           <button
             onClick={handleBookingClick}
-            className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded transition-all"
+            className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold py-2 px-3 rounded"
           >
             Book Now
           </button>
@@ -144,62 +211,85 @@ const ApartmentCard = ({ apartment }) => {
             href={`https://wa.me/+923102700608?text=${whatsappMessage}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded text-center transition-all"
+            className="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold py-2 px-3 rounded text-center"
           >
             WhatsApp
           </a>
         </div>
       </div>
 
-      {/* Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md relative">
-            <button onClick={handleCloseModal} className="absolute top-3 right-3 text-gray-500 text-xl font-bold">×</button>
-            <h2 className="text-lg font-bold mb-4">Book {title}</h2>
-            {error && <p className="text-red-600 text-sm mb-3">{error}</p>}
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div className="relative">
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  required
-                  className="peer w-full border-b-2 border-gray-300 bg-transparent px-1 pt-5 pb-2 text-sm text-gray-900 placeholder-transparent focus:border-indigo-600 focus:outline-none"
-                  placeholder="Full Name"
-                />
-                <label htmlFor="name" className="absolute left-1 top-2 text-xs text-gray-500 transition-all peer-placeholder-shown:top-5 peer-placeholder-shown:text-sm peer-placeholder-shown:text-gray-400 peer-focus:top-2 peer-focus:text-xs peer-focus:text-indigo-600">Full Name</label>
-              </div>
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-5 w-full max-w-sm relative shadow-lg">
+            <button
+              onClick={handleCloseModal}
+              className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-lg font-bold"
+            >
+              ×
+            </button>
+            <h2 className="text-base font-semibold mb-4">Book {title}</h2>
+            {error && <p className="text-red-500 text-xs mb-3">{error}</p>}
 
-              <div className="relative">
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  required
-                  className="peer w-full border-b-2 border-gray-300 bg-transparent px-1 pt-5 pb-2 text-sm text-gray-900 placeholder-transparent focus:border-indigo-600 focus:outline-none"
-                  placeholder="Email"
-                />
-                <label htmlFor="email" className="absolute left-1 top-2 text-xs text-gray-500 transition-all peer-placeholder-shown:top-5 peer-placeholder-shown:text-sm peer-placeholder-shown:text-gray-400 peer-focus:top-2 peer-focus:text-xs peer-focus:text-indigo-600">Email</label>
-              </div>
+            <form onSubmit={handleSubmit} className="space-y-3">
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                required
+                placeholder="Full Name"
+                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+              />
 
-              <div className="relative">
-                <input
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                  required
-                  className="peer w-full border-b-2 border-gray-300 bg-transparent px-1 pt-5 pb-2 text-sm text-gray-900 placeholder-transparent focus:border-indigo-600 focus:outline-none"
-                  placeholder="Phone Number"
-                />
-                <label htmlFor="phone" className="absolute left-1 top-2 text-xs text-gray-500 transition-all peer-placeholder-shown:top-5 peer-placeholder-shown:text-sm peer-placeholder-shown:text-gray-400 peer-focus:top-2 peer-focus:text-xs peer-focus:text-indigo-600">Phone Number</label>
-              </div>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                required
+                placeholder="Email"
+                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+              />
+
+              <input
+                type="tel"
+                name="phone"
+                value={formData.phone}
+                onChange={handleInputChange}
+                required
+                placeholder="Phone"
+                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+              />
+
+              <select
+                name="priceOption"
+                value={formData.priceOption || ''}
+                onChange={handleInputChange}
+                required
+                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+              >
+                <option value="" disabled>
+                  Select price option
+                </option>
+                {apartment.pricePerDay && (
+                  <option value="day">
+                    Per Day - PKR {apartment.pricePerDay}
+                  </option>
+                )}
+                {apartment.pricePerWeek && (
+                  <option value="week">
+                    Per Week - PKR {apartment.pricePerWeek}
+                  </option>
+                )}
+                {apartment.pricePerMonth && (
+                  <option value="month">
+                    Per Month - PKR {apartment.pricePerMonth}
+                  </option>
+                )}
+              </select>
 
               <div>
-                <p className="text-sm text-gray-600 font-medium mb-1">Select Dates:</p>
+                <p className="text-xs text-gray-600 mb-1">Select Dates:</p>
                 <DatePicker
                   selectsRange
                   startDate={dateRange[0]}
@@ -211,22 +301,13 @@ const ApartmentCard = ({ apartment }) => {
                 />
               </div>
 
-              <div className="flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={handleCloseModal}
-                  className="px-4 py-2 rounded border border-gray-300 text-gray-700 hover:bg-gray-100 transition"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="px-5 py-2 rounded bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition disabled:opacity-50"
-                >
-                  {isSubmitting ? 'Booking...' : 'Confirm Booking'}
-                </button>
-              </div>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium py-2 rounded transition"
+              >
+                {isSubmitting ? 'Booking...' : 'Confirm Booking'}
+              </button>
             </form>
           </div>
         </div>

@@ -3,11 +3,12 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import "sweetalert2/dist/sweetalert2.min.css";
 
-export default function BookingForm({ apartmentId }) {
+export default function BookingForm({ apartmentId, apartment }) {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [selectedDates, setSelectedDates] = useState([]);
   const [availableDates, setAvailableDates] = useState([]);
+  const [priceOption, setPriceOption] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -38,11 +39,11 @@ export default function BookingForm({ apartmentId }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!username.trim() || !email.trim() || selectedDates.length === 0) {
+    if (!username.trim() || !email.trim() || selectedDates.length === 0 || !priceOption) {
       return Swal.fire({
         icon: "warning",
         title: "Incomplete Form",
-        text: "Please fill all fields and select at least one date.",
+        text: "Please fill all fields, select dates, and choose a price option.",
       });
     }
 
@@ -51,10 +52,11 @@ export default function BookingForm({ apartmentId }) {
       await axios.post("/book", {
         apartmentId,
         selectedDates,
+        priceOption,
         userDetails: {
           name: username,
           email,
-          phone: "N/A", // Optional: Add a phone field if needed
+          phone: "N/A",
         },
       });
 
@@ -67,6 +69,7 @@ export default function BookingForm({ apartmentId }) {
       setUsername("");
       setEmail("");
       setSelectedDates([]);
+      setPriceOption("");
     } catch (err) {
       Swal.fire({
         icon: "error",
@@ -87,6 +90,7 @@ export default function BookingForm({ apartmentId }) {
         required
         className="border p-2 rounded w-full"
       />
+
       <input
         type="email"
         value={email}
@@ -95,6 +99,7 @@ export default function BookingForm({ apartmentId }) {
         required
         className="border p-2 rounded w-full"
       />
+
       <select
         multiple
         value={selectedDates}
@@ -110,6 +115,30 @@ export default function BookingForm({ apartmentId }) {
           </option>
         ))}
       </select>
+
+      <div>
+        <label className="block text-sm text-gray-600 font-medium mb-1">
+          Price Option
+        </label>
+        <select
+          value={priceOption}
+          onChange={(e) => setPriceOption(e.target.value)}
+          required
+          className="w-full border p-2 rounded"
+        >
+          <option value="" disabled>Select a price option</option>
+          {apartment?.pricePerDay && (
+            <option value="day">Per Day - PKR {apartment.pricePerDay}</option>
+          )}
+          {apartment?.pricePerWeek && (
+            <option value="week">Per Week - PKR {apartment.pricePerWeek}</option>
+          )}
+          {apartment?.pricePerMonth && (
+            <option value="month">Per Month - PKR {apartment.pricePerMonth}</option>
+          )}
+        </select>
+      </div>
+
       <button
         type="submit"
         disabled={loading}
