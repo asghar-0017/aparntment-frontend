@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/available': {
-        target: 'http://localhost:5152', // Replace with your backend URL
+        target: 'https://aparntment-rental-frontend.vercel.app', // Replace with your backend URL
         changeOrigin: true,
         secure: false,
       },

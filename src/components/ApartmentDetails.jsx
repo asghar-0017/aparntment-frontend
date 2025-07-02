@@ -13,7 +13,7 @@ const ApartmentDetails = () => {
     const fetchApartment = async () => {
       try {
         setIsLoading(true);
-        const res = await fetch(`http://localhost:5152/apartments/${id}`);
+        const res = await fetch(`https://aparntment-rental-frontend.vercel.app/apartments/${id}`);
         if (!res.ok) throw new Error('Failed to fetch apartment');
         const data = await res.json();
         setApartment(data);

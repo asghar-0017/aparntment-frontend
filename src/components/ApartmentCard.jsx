@@ -117,7 +117,7 @@ const ApartmentCard = ({ apartment }) => {
 
     setIsSubmitting(true);
     try {
-      const response = await fetch('http://localhost:5152/book', {
+      const response = await fetch('https://aparntment-rental-frontend.vercel.app/book', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
