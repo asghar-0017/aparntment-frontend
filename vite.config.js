@@ -5,11 +5,13 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   server: {
+    port: 5174,
     proxy: {
-      '/available': {
-        target: 'https://aparntment-rental-frontend.vercel.app', // Replace with your backend URL
+      '/api': {
+        target: 'https://aparntment-rental-frontend.vercel.app',
         changeOrigin: true,
         secure: false,
+        rewrite: (path) => path.replace(/^\/api/, ''),
       },
     },
   },

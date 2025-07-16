@@ -18,10 +18,29 @@ const ApartmentCard = ({ apartment }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [shortUrl, setShortUrl] = useState('');
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   const title = apartment.title?.trim() || 'Apartment';
-  const image =
-    apartment.image || 'https://via.placeholder.com/400x250?text=No+Image';
+  
+  // Enhanced image handling - check multiple possible image sources
+  const getImages = () => {
+    if (apartment.images && Array.isArray(apartment.images) && apartment.images.length > 0) {
+      return apartment.images;
+    }
+    if (apartment.image) {
+      return [apartment.image];
+    }
+    if (apartment.mainImage) {
+      return [apartment.mainImage];
+    }
+    return [];
+  };
+
+  const images = getImages();
+  const currentImage = images[currentImageIndex] || 
+    apartment.mainImage || 
+    apartment.image || 
+    'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80';
 
   const amenities = Array.isArray(apartment.amenities)
     ? apartment.amenities
@@ -37,9 +56,9 @@ const ApartmentCard = ({ apartment }) => {
 
   useEffect(() => {
     const fetchShortUrl = async () => {
-      const originalUrl = `http://127.0.0.0:5152/apartments/${apartment._id}`;
+      const originalUrl = `${window.location.origin}/apartments/${apartment._id}`;
       try {
-        const response = await fetch('http://127.0.0.0:5152/shorten-url', {
+        const response = await fetch('/api/shorten-url', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ url: originalUrl }),
@@ -71,6 +90,16 @@ const ApartmentCard = ({ apartment }) => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleImageChange = (direction) => {
+    if (images.length <= 1) return;
+    
+    if (direction === 'next') {
+      setCurrentImageIndex((prev) => (prev + 1) % images.length);
+    } else {
+      setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
+    }
   };
 
   // ✅ UPDATED: Block selecting ranges that cross booked dates
@@ -117,7 +146,7 @@ const ApartmentCard = ({ apartment }) => {
 
     setIsSubmitting(true);
     try {
-      const response = await fetch('https://aparntment-rental-frontend.vercel.app/book', {
+      const response = await fetch('/api/book', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -153,23 +182,99 @@ const ApartmentCard = ({ apartment }) => {
   );
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg border border-gray-200 hover:shadow-2xl transition overflow-hidden max-w-sm mx-auto">
-      <img
-        src={image}
-        alt={title}
-        loading="lazy"
-        className="h-64 w-full object-cover"
-      />
+    <div className="bg-white rounded-2xl shadow-lg border border-gray-200 hover:shadow-2xl transition overflow-hidden w-full h-full flex flex-col">
+      {/* Image Gallery */}
+      <div className="relative h-72 overflow-hidden">
+        <img
+          src={currentImage}
+          alt={title}
+          loading="lazy"
+          className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
+          onError={(e) => {
+            e.target.src = 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80';
+          }}
+        />
+        
+        {/* Image Navigation */}
+        {images.length > 1 && (
+          <>
+            <button
+              onClick={() => handleImageChange('prev')}
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 bg-black/50 text-white rounded-full p-2 hover:bg-black/70 transition"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <button
+              onClick={() => handleImageChange('next')}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-black/50 text-white rounded-full p-2 hover:bg-black/70 transition"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+            
+            {/* Image Indicators */}
+            <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 flex space-x-2">
+              {images.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentImageIndex(index)}
+                  className={`w-3 h-3 rounded-full transition ${
+                    index === currentImageIndex ? 'bg-white' : 'bg-white/50'
+                  }`}
+                />
+              ))}
+            </div>
+            
+            {/* Image Counter */}
+            <div className="absolute top-3 right-3 bg-black/50 text-white text-xs px-2 py-1 rounded-full">
+              {currentImageIndex + 1} / {images.length}
+            </div>
+          </>
+        )}
+      </div>
 
-      <div className="p-4">
-        <h3 className="text-xl font-semibold text-gray-800 mb-1 truncate">
+      <div className="p-6 flex-1 flex flex-col">
+        <h3 className="text-xl font-semibold text-gray-800 mb-2 truncate">
           {title}
         </h3>
-        <p className="text-xs text-gray-500 mb-2">
+        <p className="text-sm text-gray-500 mb-3">
           {apartment.city} • {apartment.type}
         </p>
 
-        <div className="text-base font-medium text-amber-600 mb-3">
+        {/* Property Details */}
+        {(apartment.bedrooms || apartment.bathrooms || apartment.maxGuests) && (
+          <div className="flex items-center gap-4 mb-4 text-sm text-gray-600">
+            {apartment.bedrooms && (
+              <span className="flex items-center gap-1">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {apartment.bedrooms} Bed
+              </span>
+            )}
+            {apartment.bathrooms && (
+              <span className="flex items-center gap-1">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {apartment.bathrooms} Bath
+              </span>
+            )}
+            {apartment.maxGuests && (
+              <span className="flex items-center gap-1">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z" />
+                </svg>
+                {apartment.maxGuests} Guests
+              </span>
+            )}
+          </div>
+        )}
+
+        <div className="text-lg font-medium text-amber-600 mb-4">
           {apartment.pricePerDay && (
             <div>PKR {apartment.pricePerDay.toLocaleString()}/day</div>
           )}
@@ -181,14 +286,23 @@ const ApartmentCard = ({ apartment }) => {
           )}
         </div>
 
-        <div className="mb-3">
-          <p className="text-xs font-medium text-gray-600 mb-1">Amenities:</p>
+        {/* Description */}
+        {apartment.description && (
+          <div className="mb-4">
+            <p className="text-sm text-gray-600 line-clamp-2">
+              {apartment.description}
+            </p>
+          </div>
+        )}
+
+        <div className="mb-4 flex-1">
+          <p className="text-xs font-medium text-gray-600 mb-2">Amenities:</p>
           <div className="flex flex-wrap gap-1">
             {amenities.length > 0 ? (
-              amenities.map((item, index) => (
+              amenities.slice(0, 4).map((item, index) => (
                 <span
                   key={index}
-                  className="bg-gray-100 text-[10px] text-gray-700 px-2 py-1 rounded-full"
+                  className="bg-gray-100 text-xs text-gray-700 px-2 py-1 rounded-full"
                 >
                   {item}
                 </span>
@@ -196,13 +310,18 @@ const ApartmentCard = ({ apartment }) => {
             ) : (
               <span className="text-gray-400 text-xs">N/A</span>
             )}
+            {amenities.length > 4 && (
+              <span className="bg-gray-100 text-xs text-gray-700 px-2 py-1 rounded-full">
+                +{amenities.length - 4} more
+              </span>
+            )}
           </div>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 mt-auto">
           <button
             onClick={handleBookingClick}
-            className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold py-2 px-3 rounded"
+            className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold py-3 px-4 rounded-lg transition"
           >
             Book Now
           </button>
@@ -211,24 +330,33 @@ const ApartmentCard = ({ apartment }) => {
             href={`https://wa.me/+923102700608?text=${whatsappMessage}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold py-2 px-3 rounded text-center"
+            className="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-3 px-4 rounded-lg text-center transition"
           >
             WhatsApp
           </a>
         </div>
+        
+        {/* View Details Button */}
+        <a
+          href={`/apartments/${apartment._id}`}
+          className="block w-full bg-gray-100 hover:bg-gray-200 text-gray-800 text-sm font-semibold py-2 px-4 rounded-lg text-center transition mt-2"
+        >
+          View Details
+        </a>
       </div>
 
+      {/* Booking Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-5 w-full max-w-sm relative shadow-lg">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md relative shadow-lg">
             <button
               onClick={handleCloseModal}
               className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-lg font-bold"
             >
               ×
             </button>
-            <h2 className="text-base font-semibold mb-4">Book {title}</h2>
-            {error && <p className="text-red-500 text-xs mb-3">{error}</p>}
+            <h2 className="text-lg font-semibold mb-4">Book {title}</h2>
+            {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
 
             <form onSubmit={handleSubmit} className="space-y-3">
               <input
@@ -238,7 +366,7 @@ const ApartmentCard = ({ apartment }) => {
                 onChange={handleInputChange}
                 required
                 placeholder="Full Name"
-                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
               />
 
               <input
@@ -248,7 +376,7 @@ const ApartmentCard = ({ apartment }) => {
                 onChange={handleInputChange}
                 required
                 placeholder="Email"
-                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
               />
 
               <input
@@ -258,7 +386,7 @@ const ApartmentCard = ({ apartment }) => {
                 onChange={handleInputChange}
                 required
                 placeholder="Phone"
-                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
               />
 
               <select
@@ -266,24 +394,24 @@ const ApartmentCard = ({ apartment }) => {
                 value={formData.priceOption || ''}
                 onChange={handleInputChange}
                 required
-                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
               >
                 <option value="" disabled>
                   Select price option
                 </option>
                 {apartment.pricePerDay && (
                   <option value="day">
-                    Per Day - PKR {apartment.pricePerDay}
+                    Per Day - PKR {apartment.pricePerDay.toLocaleString()}
                   </option>
                 )}
                 {apartment.pricePerWeek && (
                   <option value="week">
-                    Per Week - PKR {apartment.pricePerWeek}
+                    Per Week - PKR {apartment.pricePerWeek.toLocaleString()}
                   </option>
                 )}
                 {apartment.pricePerMonth && (
                   <option value="month">
-                    Per Month - PKR {apartment.pricePerMonth}
+                    Per Month - PKR {apartment.pricePerMonth.toLocaleString()}
                   </option>
                 )}
               </select>
@@ -304,7 +432,7 @@ const ApartmentCard = ({ apartment }) => {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium py-2 rounded transition"
+                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium py-3 rounded-lg transition disabled:opacity-50"
               >
                 {isSubmitting ? 'Booking...' : 'Confirm Booking'}
               </button>
