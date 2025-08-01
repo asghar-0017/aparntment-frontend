@@ -11,7 +11,7 @@ const Home = () => {
 
   useEffect(() => {
     const fetchApartments = async () => {
-      const res = await fetch('http://localhost:5152/get-apparntment');
+      const res = await fetch('https://aparntment-rental-frontend.vercel.app/get-apparntment');
       const data = await res.json();
       setApartments(data);
     };
