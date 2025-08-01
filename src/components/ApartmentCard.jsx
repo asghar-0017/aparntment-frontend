@@ -54,24 +54,24 @@ const ApartmentCard = ({ apartment }) => {
       })
       .filter(Boolean) || [];
 
-  useEffect(() => {
-    const fetchShortUrl = async () => {
-      const originalUrl = `${window.location.origin}/apartments/${apartment._id}`;
-      try {
-        const response = await fetch('/api/shorten-url', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url: originalUrl }),
-        });
-        const data = await response.json();
-        setShortUrl(data.shortUrl || originalUrl);
-      } catch (err) {
-        console.error('Shorten URL failed:', err);
-        setShortUrl(originalUrl);
-      }
-    };
-    fetchShortUrl();
-  }, [apartment._id]);
+  // useEffect(() => {
+  //   const fetchShortUrl = async () => {
+  //     const originalUrl = `${window.location.origin}/apartments/${apartment._id}`;
+  //     try {
+  //       const response = await fetch('/api/shorten-url', {
+  //         method: 'POST',
+  //         headers: { 'Content-Type': 'application/json' },
+  //         body: JSON.stringify({ url: originalUrl }),
+  //       });
+  //       const data = await response.json();
+  //       setShortUrl(data.shortUrl || originalUrl);
+  //     } catch (err) {
+  //       console.error('Shorten URL failed:', err);
+  //       setShortUrl(originalUrl);
+  //     }
+  //   };
+  //   fetchShortUrl();
+  // }, [apartment._id]);
 
   const handleBookingClick = () => setIsModalOpen(true);
 

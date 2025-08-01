@@ -19,7 +19,7 @@ export default function DateSearch() {
       const end = checkOut.toISOString().split("T")[0];
 
       const res = await axios.get(
-        `https://aparntment-rental-frontend.vercel.app/available?startDate=${start}&endDate=${end}`
+        `http://localhost:5152/available?startDate=${start}&endDate=${end}`
       );
 
       setResults(res.data);
