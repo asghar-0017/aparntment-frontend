@@ -178,7 +178,7 @@ const ApartmentCard = ({ apartment }) => {
   };
 
   const whatsappMessage = encodeURIComponent(
-    `Hello! I'm interested in *${title}*. Can you tell me more? ${shortUrl}`
+    `Hello! I'm interested in *${title}*. Can you tell me more?`
   );
 
   return (
@@ -274,6 +274,32 @@ const ApartmentCard = ({ apartment }) => {
           </div>
         )}
 
+        {/* Availability Information */}
+        {apartment.totalAvailableDays !== undefined && (
+          <div className="mb-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-blue-800">Availability</span>
+              <span className={`text-xs px-2 py-1 rounded-full ${
+                apartment.isFullyAvailable 
+                  ? 'bg-green-100 text-green-800' 
+                  : 'bg-yellow-100 text-yellow-800'
+              }`}>
+                {apartment.isFullyAvailable ? 'Fully Available' : 'Partially Available'}
+              </span>
+            </div>
+            <div className="text-sm text-blue-700">
+              <div>{apartment.totalAvailableDays} of {apartment.totalRequestedDays} days available</div>
+              {apartment.availableRanges && apartment.availableRanges.length > 0 && (
+                <div className="text-xs text-blue-600 mt-1">
+                  Available ranges: {apartment.availableRanges.map(range => 
+                    `${range.start} to ${range.end}`
+                  ).join(', ')}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         <div className="text-lg font-medium text-amber-600 mb-4">
           {apartment.pricePerDay && (
             <div>PKR {apartment.pricePerDay.toLocaleString()}/day</div>
@@ -327,7 +353,7 @@ const ApartmentCard = ({ apartment }) => {
           </button>
 
           <a
-            href={`https://wa.me/+923102700608?text=${whatsappMessage}`}
+            href={`https://wa.me/+923041513361?text=${whatsappMessage}`}
             target="_blank"
             rel="noopener noreferrer"
             className="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-3 px-4 rounded-lg text-center transition"

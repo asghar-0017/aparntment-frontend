@@ -346,7 +346,7 @@ const ApartmentDetails = () => {
                 Book Now
               </button>
               <a
-                href={`https://wa.me/+923102700608?text=Hello! I'm interested in ${apartment.title}. Can you tell me more?`}
+                href={`https://wa.me/+923041513361?text=Hello! I'm interested in ${apartment.title}. Can you tell me more?`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg text-center transition"

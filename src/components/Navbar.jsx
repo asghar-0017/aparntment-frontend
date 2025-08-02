@@ -26,8 +26,12 @@ const Navbar = () => {
           to="/"
           className="text-3xl font-bold tracking-widest flex items-center space-x-2"
         >
-          <span className="text-yellow-500">👑</span>
-          <span className="text-white">Rentio</span>
+          <img 
+            src="https://res.cloudinary.com/dwul2hfvj/image/upload/v1754079184/nisaiczumni7wpxc3idd.jpg" 
+            alt="Homehubstay Logo" 
+            className="w-8 h-8 rounded-full"
+          />
+          <span className="text-white">Homehubstay</span>
         </Link>
 
         {/* Desktop Menu */}
@@ -38,8 +42,11 @@ const Navbar = () => {
           <Link to="/apartments" className="hover:text-yellow-500">
             Apartments
           </Link>
+          <Link to="/about" className="hover:text-yellow-500">
+            About
+          </Link>
           <a
-            href="https://wa.me/+923102700608"
+            href="https://wa.me/+923041513361"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -81,8 +88,15 @@ const Navbar = () => {
           >
             Apartments
           </Link>
+          <Link
+            to="/about"
+            className="block hover:text-yellow-500"
+            onClick={() => setIsOpen(false)}
+          >
+            About
+          </Link>
           <a
-            href="https://wa.me/+923102700608"
+            href="https://wa.me/+923041513361"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-block mt-3 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md text-sm font-medium transition"

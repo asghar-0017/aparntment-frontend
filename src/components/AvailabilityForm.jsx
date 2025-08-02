@@ -18,15 +18,16 @@ export default function DateSearch() {
       const start = checkIn.toISOString().split("T")[0];
       const end = checkOut.toISOString().split("T")[0];
 
-      const res = await axios.get(
-        `http://localhost:5152/available?startDate=${start}&endDate=${end}`
-      );
+      console.log('Searching for dates:', start, 'to', end);
 
+      const res = await axios.get(`https://aparntment-rental-frontend.vercel.app/available?startDate=${start}&endDate=${end}`);
+
+      console.log('Search results:', res.data);
       setResults(res.data);
       setError(null);
       setHasSearched(true);
     } catch (err) {
-      console.error(err);
+      console.error('Search error:', err);
       setError("Failed to check availability.");
       setHasSearched(true);
     }
