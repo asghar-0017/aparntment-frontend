@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
 import Swal from "sweetalert2";
 import "sweetalert2/dist/sweetalert2.min.css";
+import apiService from '../services/api.js';
 
 export default function BookingForm({ apartmentId, apartment }) {
   const [username, setUsername] = useState("");
@@ -16,8 +16,8 @@ export default function BookingForm({ apartmentId, apartment }) {
   useEffect(() => {
     const fetchAvailability = async () => {
       try {
-        const res = await axios.get(`/available?startDate=2025-06-01&endDate=2025-06-30`);
-        const apt = res.data.find((a) => a._id === apartmentId);
+        const res = await apiService.makeRequest(`/available?startDate=2025-06-01&endDate=2025-06-30`);
+        const apt = res.find((a) => a._id === apartmentId);
         setAvailableDates(
           apt?.availableRanges?.flatMap((range) => {
             const dates = [];
@@ -54,7 +54,7 @@ export default function BookingForm({ apartmentId, apartment }) {
 
     try {
       setLoading(true);
-      await axios.post("/book", {
+      await apiService.bookApartment({
         apartmentId,
         selectedDates,
         priceOption,

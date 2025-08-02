@@ -9,6 +9,8 @@ class ApiService {
   async makeRequest(endpoint, options = {}) {
     const url = `${this.baseURL}${endpoint}`;
     
+    console.log('Making API request to:', url);
+    
     const defaultOptions = {
       headers: {
         'Content-Type': 'application/json',
@@ -20,6 +22,9 @@ class ApiService {
 
     try {
       const response = await fetch(url, requestOptions);
+      
+      console.log('Response status:', response.status);
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
       
       // Check if response is HTML (error page)
       const contentType = response.headers.get('content-type');
@@ -35,6 +40,7 @@ class ApiService {
       return await response.json();
     } catch (error) {
       console.error('API request failed:', error);
+      console.error('Request URL:', url);
       throw error;
     }
   }

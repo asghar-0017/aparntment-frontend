@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import slide1 from '../assets/slide1.jpg';
 import slide2 from '../assets/slide2.jpg';
 import slide3 from '../assets/slide3.jpg';
@@ -38,13 +39,16 @@ const HeroSection = () => {
 
       {/* Content */}
       <div className="relative z-20 h-full flex flex-col justify-center items-start px-6 md:px-20">
-        <h2 className="text-xl md:text-2xl text-yellow-500 font-semibold mb-2">WHITELAW</h2>
+        <h2 className="text-xl md:text-2xl text-yellow-500 font-semibold mb-2">HOMEHUBSTAY</h2>
         <h1 className="text-4xl md:text-6xl font-extrabold text-white leading-tight max-w-3xl">
-          HOTEL. CLEAN SHEETS, HOT WATER, STIFF DRINKS.
+          YOUR PERFECT HOME AWAITS. COMFORT, LUXURY, MEMORIES.
         </h1>
-        <button className="mt-6 bg-yellow-600 text-white px-6 py-3 text-sm uppercase tracking-wide hover:bg-yellow-700 transition">
+        <Link
+          to="/more-about"
+          className="mt-6 bg-yellow-600 text-white px-6 py-3 text-sm uppercase tracking-wide hover:bg-yellow-700 transition inline-block"
+        >
           More About →
-        </button>
+        </Link>
       </div>
     </section>
   );

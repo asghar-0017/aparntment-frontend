@@ -17,7 +17,7 @@ const Footer = () => {
             Subscribe to our Newsletter!
           </h2>
           <p className="text-gray-400">
-            Never miss anything from Construx by signing up to our newsletter.
+            Never miss anything from Homehubstay by signing up to our newsletter.
           </p>
         </div>
         <div className="flex flex-col sm:flex-row items-center gap-2">

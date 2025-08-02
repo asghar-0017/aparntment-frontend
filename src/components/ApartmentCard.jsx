@@ -3,6 +3,7 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import apiService from '../services/api.js';
 
 const ApartmentCard = ({ apartment }) => {
   if (!apartment) return null;
@@ -146,32 +147,25 @@ const ApartmentCard = ({ apartment }) => {
 
     setIsSubmitting(true);
     try {
-      const response = await fetch('/api/book', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          apartmentId: apartment._id,
-          selectedDates,
-          priceOption: formData.priceOption,
-          userDetails: {
-            name: formData.name,
-            email: formData.email,
-            phone: formData.phone,
-          },
-        }),
-      });
+      const bookingData = {
+        apartmentId: apartment._id,
+        selectedDates,
+        priceOption: formData.priceOption,
+        userDetails: {
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+        },
+      };
 
-      const result = await response.json();
-
-      if (response.ok) {
-        toast.success('Booking successful!');
-        handleCloseModal();
-      } else {
-        toast.error(result.error || 'Booking failed.');
-      }
+      const result = await apiService.bookApartment(bookingData);
+      
+      toast.success('Booking successful!');
+      handleCloseModal();
     } catch (err) {
       setError('Booking failed. Please try again.');
       console.error(err);
+      toast.error(err.message || 'Booking failed.');
     } finally {
       setIsSubmitting(false);
     }

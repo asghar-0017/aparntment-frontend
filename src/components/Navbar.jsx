@@ -45,6 +45,9 @@ const Navbar = () => {
           <Link to="/about" className="hover:text-yellow-500">
             About
           </Link>
+          <Link to="/more-about" className="hover:text-yellow-500">
+            More About
+          </Link>
           <a
             href="https://wa.me/+923041513361"
             target="_blank"
@@ -94,6 +97,13 @@ const Navbar = () => {
             onClick={() => setIsOpen(false)}
           >
             About
+          </Link>
+          <Link
+            to="/more-about"
+            className="block hover:text-yellow-500"
+            onClick={() => setIsOpen(false)}
+          >
+            More About
           </Link>
           <a
             href="https://wa.me/+923041513361"
