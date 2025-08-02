@@ -4,6 +4,7 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import apiService from '../services/api.js';
 
 const ApartmentDetails = () => {
   const { id } = useParams();
@@ -28,11 +29,7 @@ const ApartmentDetails = () => {
 
   const fetchApartmentDetails = async () => {
     try {
-      const response = await fetch(`/api/apartments/${id}`);
-      if (!response.ok) {
-        throw new Error('Apartment not found');
-      }
-      const data = await response.json();
+      const data = await apiService.getApartmentById(id);
       setApartment(data);
     } catch (error) {
       console.error('Error fetching apartment:', error);
@@ -115,29 +112,19 @@ const ApartmentDetails = () => {
 
     setIsSubmitting(true);
     try {
-      const response = await fetch('/api/book', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          apartmentId: apartment._id,
-          selectedDates,
-          priceOption: formData.priceOption,
-          userDetails: {
-            name: formData.name,
-            email: formData.email,
-            phone: formData.phone,
-          },
-        }),
+      const result = await apiService.bookApartment({
+        apartmentId: apartment._id,
+        selectedDates,
+        priceOption: formData.priceOption,
+        userDetails: {
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+        },
       });
 
-      const result = await response.json();
-
-      if (response.ok) {
-        toast.success('Booking successful! Check your email for confirmation.');
-        handleCloseModal();
-      } else {
-        toast.error(result.error || 'Booking failed.');
-      }
+      toast.success('Booking successful! Check your email for confirmation.');
+      handleCloseModal();
     } catch (err) {
       setError('Booking failed. Please try again.');
       console.error(err);

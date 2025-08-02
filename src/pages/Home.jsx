@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import HeroSection from '../components/HeroSection';
 import ApartmentCard from '../components/ApartmentCard';
 import DateSearch from "../components/AvailabilityForm";
+import apiService from '../services/api.js';
 
 const Home = () => {
   const [apartments, setApartments] = useState([]);
@@ -12,8 +13,7 @@ const Home = () => {
   useEffect(() => {
     const fetchApartments = async () => {
       try {
-        const res = await fetch('https://aparntment-rental-frontend.vercel.app/get-apparntment');
-        const data = await res.json();
+        const data = await apiService.getApartments();
         setApartments(data);
       } catch (error) {
         console.error('Error fetching apartments:', error);

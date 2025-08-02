@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import ApartmentCard from '../components/ApartmentCard';
+import apiService from '../services/api.js';
 
 const Apartments = () => {
   const [apartments, setApartments] = useState([]);
@@ -22,19 +23,7 @@ const Apartments = () => {
       try {
         setIsLoading(true);
         
-        const res = await fetch('https://aparntment-rental-frontend.vercel.app/get-apparntment', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-        
-        if (!res.ok) {
-          const errorText = await res.text();
-          throw new Error(`Failed to fetch apartments: ${res.status} ${errorText}`);
-        }
-        
-        const data = await res.json();
+        const data = await apiService.getApartments();
         
         if (Array.isArray(data)) {
           setApartments(data);
@@ -43,8 +32,8 @@ const Apartments = () => {
         }
       } catch (err) {
         console.error('Error fetching apartments:', err);
-        if (err.message.includes('Failed to fetch')) {
-          setError('Unable to connect to server. Please check your internet connection.');
+        if (err.message.includes('Failed to fetch') || err.message.includes('API endpoint not found')) {
+          setError('Unable to connect to server. Please check your internet connection or try again later.');
         } else {
           setError(`Error fetching apartments: ${err.message}`);
         }
